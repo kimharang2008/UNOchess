@@ -1,0 +1,11 @@
+{
+  "name": "uno-chess",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test:functional": "node tests/functional.test.js",
+    "test:edge": "node tests/edge.test.js",
+    "test:regression": "node tests/regression.test.js"
+  }
+}
