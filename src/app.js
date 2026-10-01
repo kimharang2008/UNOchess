@@ -139,15 +139,12 @@ async function activateAugment(name, side) {
       if (found.length < count) { state.notice = '거신병 소환에는 폰 4, 나이트 2, 룩 1, 비숍 1개가 필요합니다.'; return false; }
       removals.push(...found);
     }
-    const rankOrder = side === WHITE ? [7,6,5,4] : [0,1,2,3];
-    let spot = null;
-    for (const r of rankOrder) for (let c=0;c<8;c++) if (state.board[r][c] === '.' && !spot) spot=[r,c];
-    if (!spot) { state.notice = '거신병을 놓을 빈칸이 없습니다.'; return false; }
+    if (!resurrectionSquares(state, side).length) { state.notice = '자기 진영에 거신병을 소환할 빈칸이 없습니다.'; return false; }
     for (const [r,c] of removals) {
       const rightBySquare={'7,7':'K','7,0':'Q','0,7':'k','0,0':'q'},right=rightBySquare[`${r},${c}`];if(right)state.castling.delete(right);
       state.graveyard.push(state.board[r][c].toLowerCase()); state.board[r][c]='.'; state.ids[r][c]=null;
     }
-    const giant = side === WHITE ? 'A' : 'a'; putAugmentPiece(giant, spot); a.giantHits[state.ids[spot[0]][spot[1]]] = 3;
+    state.pendingGiantSummon = { side, squares: resurrectionSquares(state, side) };
     state.notice = '체크메이트의 거신병 소환! 체력 3';
   } else if (name === '좀비사태!!!!') { a.zombie[side] = 3; state.notice = '좀비사태!!!! 3회 발동 준비!'; }
   else if (name === '승급 중독자') { a.promotionAddict[side] = 3; state.notice = '승급 중독자 효과가 3회 남았습니다.'; }
@@ -221,6 +218,7 @@ function rendersAsPiece(piece, checked, mated) {
   if (piece === '.') return '';
   const side = colorOf(piece);
   const kingClass = piece.toLowerCase() === 'k' ? (mated.includes(side) ? 'checkmated' : checked.includes(side) ? 'in-check' : '') : '';
+  if (piece.toLowerCase() === 'a') return '<img class="piece giant-piece ' + (side === WHITE ? 'white' : 'black') + '" src="assets/giant-' + (side === WHITE ? 'white' : 'black') + '.svg" alt="체크메이트의 거신병">';
   return `<span class="piece ${side === WHITE ? 'white' : 'black'} ${kingClass}">${SYMBOLS[piece]}</span>`;
 }
 
@@ -240,6 +238,7 @@ function renderBoard() {
     if (selection?.[0] === r && selection?.[1] === c) square.classList.add('selected');
     if (boardState.lastMove && [boardState.lastMove.from, boardState.lastMove.to].some(p => p[0] === r && p[1] === c)) square.classList.add('last-move');
     if (!reviewing && state.pendingTransform && piece !== '.' && colorOf(piece) === currentSide(state) && piece.toLowerCase() !== 'k') square.classList.add('transformable');
+    if (!reviewing && state.pendingGiantSummon?.squares.some(target => target[0] === r && target[1] === c)) square.classList.add('giant-summon-target', state.pendingGiantSummon.side === WHITE ? 'revival-white' : 'revival-black');
     if (!reviewing && state.pendingRevival?.squares.some(target => target[0] === r && target[1] === c)) {
       square.classList.add('revival-target', currentSide(state) === WHITE ? 'revival-white' : 'revival-black');
     }
@@ -363,6 +362,18 @@ async function finishTransform(pos) {
 
 async function onSquareClick(pos) {
   if (state.winner !== null || reviewing || !onlineCanAct()) return;
+  if (state.pendingGiantSummon) {
+    const pending = state.pendingGiantSummon;
+    if (pending.squares.some(target => target[0] === pos[0] && target[1] === pos[1]) && state.board[pos[0]][pos[1]] === '.') {
+      const giant = pending.side === WHITE ? 'A' : 'a';
+      putAugmentPiece(giant, pos);
+      state.augments.giantHits[state.ids[pos[0]][pos[1]]] = 3;
+      state.pendingGiantSummon = null;
+      state.notice = '체크메이트의 거신병을 ' + squareName(pos) + '에 소환했습니다. 체력 3';
+      render();
+    }
+    return;
+  }
   if (state.pendingRevival) {
     if (state.pendingRevival.squares.some(target => target[0] === pos[0] && target[1] === pos[1])) {
       const { graveIndex, squareResolver } = state.pendingRevival;

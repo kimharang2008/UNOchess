@@ -12,13 +12,13 @@ test('초기 보드와 백의 기본 합법 수를 만든다', () => {
   assert.equal(legalMoves(state, 'w').length, 20);
 });
 
-test('카드 덱은 숫자 70%, 특수 30% 비율과 지정된 숫자 확률을 반영한다', () => {
+test('카드 덱은 숫자 65%, 특수 35% 비율과 지정된 숫자 확률을 반영한다', () => {
   const deck = createDeck();
   assert.equal(deck.length, 4000);
   for (let n=0;n<=9;n++) assert.equal(deck.filter(card => card === String(n)).length, NUMBER_COUNTS[n]);
   for (let i=0;i<SPECIAL_COUNTS.length;i++) assert.equal(deck.filter(card => card === ['금지','+2','와일드','리버스','와일드 리버스','특수증강 와일드','+4 와일드'][i]).length, SPECIAL_COUNTS[i]);
-  assert.equal(deck.filter(card => !/^\d$/.test(card)).length, 1200);
-  assert.equal(NUMBER_COUNTS.reduce((sum, n) => sum+n, 0), 2800);
+  assert.equal(deck.filter(card => !/^\d$/.test(card)).length, 1400);
+  assert.equal(NUMBER_COUNTS.reduce((sum, n) => sum+n, 0), 2600);
 });
 
 test('첫 이동 전인 퀸은 킹을 직접 잡을 수 있고 승격 이름을 보여준다', () => {

@@ -58,12 +58,15 @@ body[data-turn-side="black"] .board-wrap { border-color: #454c47; }
 .square.capture-target::after, .square.king-target::after, .square.revival-target::after { content: ''; width: 23%; height: 23%; border: 0; border-radius: 50%; background: #1c211f; box-shadow: 0 1px 3px #0008; position: absolute; }
 .square.capture-target::after, .square.king-target::after { width: 23%; height: 23%; border: 0; background: #1c211f; box-shadow: 0 1px 3px #0008; }
 .square.revival-target { box-shadow: inset 0 0 0 4px #d6e271; }
+.square.giant-summon-target { cursor: pointer; box-shadow: inset 0 0 0 4px #e1b84b, inset 0 0 18px #f6d76d99; }
+.square.giant-summon-target:hover { filter: brightness(1.12); }
 .square.revival-white::after { background: #fffdf3; border: 2px solid #303a32; box-shadow: 0 1px 4px #0009; }
 .square.revival-black::after { background: #171b19; border: 2px solid #f5f1df; box-shadow: 0 1px 4px #0009; }
 .square.transformable { cursor: pointer; box-shadow: inset 0 0 0 4px #d6e271, inset 0 0 18px #f4e97999; }
 .square.transformable:hover { filter: brightness(1.12); }
 .square.last-move { background-image: linear-gradient(#e1e77980, #e1e77980); }
 .piece { font-family: 'Noto Sans Symbols 2', 'Segoe UI Symbol', serif; font-size: clamp(32px, 7vw, 68px); line-height: 1; filter: drop-shadow(0 2px 1px #0002); pointer-events: none; }
+.piece.giant-piece { width: 82%; height: 82%; object-fit: contain; filter: drop-shadow(0 3px 2px #0005); }
 .piece.white { color: #fffdf3; text-shadow: 0 1px 1px #212821, 1px 0 #303a32, -1px 0 #303a32, 0 -1px #303a32; }
 .piece.black { color: #252a26; }
 .giant-hp { position: absolute; right: 7%; top: 5%; z-index: 2; min-width: 20px; padding: 2px 5px; border-radius: 99px; background: #992f2f; color: white; font-size: 12px; font-weight: 800; box-shadow: 0 1px 4px #0008; }

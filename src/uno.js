@@ -1,16 +1,16 @@
 import { reverseSides, randomizePositions } from './chess.js';
 
-// Number percentages are within the 60% numeric-card group.
+// Number percentages are within the 65% numeric-card group.
 export const NUMBER_PERCENTAGES = [5, 16, 16, 16, 12, 12, 6, 6, 6, 5];
-// Special-card percentages sum to 100% within the 40% special-card group.
+// Special-card percentages sum to 100% within the 35% special-card group.
 export const SPECIAL_WEIGHTS = [
   ['금지', 16], ['+2', 16], ['와일드', 16], ['리버스', 15],
   ['와일드 리버스', 15], ['특수증강 와일드', 11], ['+4 와일드', 11],
 ];
 
 const GROUP_SCALE = 40; // 4,000 cards keeps both probability groups exact.
-export const NUMBER_COUNTS = NUMBER_PERCENTAGES.map(percent => Math.round(percent * 0.6 * GROUP_SCALE));
-export const SPECIAL_COUNTS = SPECIAL_WEIGHTS.map(([, percent]) => Math.round(percent * 0.4 * GROUP_SCALE));
+export const NUMBER_COUNTS = NUMBER_PERCENTAGES.map(percent => Math.round(percent * 0.65 * GROUP_SCALE));
+export const SPECIAL_COUNTS = SPECIAL_WEIGHTS.map(([, percent]) => Math.round(percent * 0.35 * GROUP_SCALE));
 
 export function createDeck() {
   const cards = [];
@@ -36,9 +36,6 @@ export async function resolveCard(state, card, ui) {
   if (/^\d$/.test(card)) return { actions: Number(card), messages: [`남은 턴 ${card}회`] };
   if (card === '+2' || card === '+4 와일드') {
     const target = card === '+2' ? 2 : 4;
-    if (card === '+4 와일드' && state.graveyard.length < target) {
-      return { actions: 1, messages: ['묘지 기물이 4개보다 적어 부활은 건너뛰고 승급만 진행합니다.'], pendingTransform: true };
-    }
     const revived = await ui.chooseResurrections(state, target);
     const messages = [`기물 ${revived}/${target}명을 부활시킬 수 있습니다.`];
     if (card === '+4 와일드') {

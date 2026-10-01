@@ -25,7 +25,7 @@ export function createState(deck) {
     board, ids, nextId, moved: new Set(), graveyard: [], turnPlayer: 0,
     playerSides: [WHITE, BLACK], castling: new Set(['K', 'Q', 'k', 'q']),
     enPassant: null, firstTurn: true, firstTurns: new Set([WHITE, BLACK]), turnNumber: 1, deck, lastMove: null,
-    winner: null, card: null, actionsLeft: 0, busy: false, pendingAugmentChoice: false, kingEscapeRequired: null,
+    winner: null, card: null, actionsLeft: 0, busy: false, pendingAugmentChoice: false, pendingGiantSummon: null, kingEscapeRequired: null,
     augments: {
       giantHits: {}, giantPrevious: {}, kingPrevious: {}, zombie: {}, promotionAddict: {}, revenge: {}, kingDna: {}, shield: {},
       alz: {}, traps: {}, beginner: {}, sword: {}, ghosts: [], afterimage: {}, rewind: {}, skipTurns: {},
