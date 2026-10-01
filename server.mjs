@@ -85,4 +85,4 @@ server.on('error', error => {
   }
   throw error;
 });
-server.listen(port, '127.0.0.1', () => console.log(`Uno Chess is running at http://127.0.0.1:${port}`));
+server.listen(port, '0.0.0.0', () => console.log(`Uno Chess is running on port ${port}`));
