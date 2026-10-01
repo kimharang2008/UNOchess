@@ -1,1 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="a" x2="0" y2="1"><stop stop-color="#535b55"/><stop offset="1" stop-color="#171c19"/></linearGradient></defs><path d="M25 111h78l-7-13H32z" fill="#a87835" stroke="#171a18" stroke-width="5" stroke-linejoin="round"/><path d="M37 96 31 73l12-17-4-22 15-19 7 21 16-18 5 28 14 17-8 33z" fill="url(#a)" stroke="#101412" stroke-width="6" stroke-linejoin="round"/><path d="m43 61 18-7 23 8-7 12-25 1z" fill="#9e392f" stroke="#101412" stroke-width="4"/><path d="m48 90 17-13 18 14M53 33l8 8 8-12M87 45l8 6" fill="none" stroke="#d1b064" stroke-width="5" stroke-linecap="round"/><circle cx="55" cy="52" r="3" fill="#ffcf64"/><path d="m29 107 70 0" stroke="#d1b064" stroke-width="3"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">목재 체스말을 엮어 만든 흑색 거신병</title>
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2=".25"><stop stop-color="#d6a66b"/><stop offset=".48" stop-color="#80502f"/><stop offset="1" stop-color="#39251b"/></linearGradient>
+    <linearGradient id="lightWood" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#edc488"/><stop offset="1" stop-color="#68402a"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-20%" width="160%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="2" flood-color="#090705" flood-opacity=".62"/></filter>
+  </defs>
+  <g stroke="#211610" stroke-width="2.4" stroke-linejoin="round" filter="url(#shadow)">
+    <path fill="url(#wood)" d="M15 112q1-7 10-9l2-7q2-4 8-4t8 4l2 7q9 2 10 9l-4 5H19z"/>
+    <path fill="url(#wood)" d="M73 112q1-7 10-9l2-7q2-4 8-4t8 4l2 7q9 2 10 9l-4 5H77z"/>
+    <path fill="url(#lightWood)" d="M33 96l4-12 6-4 2-12 8-5 5 8-3 11 4 14zM70 96l4-12-4-9 6-11 9 6 1 12 7 5 3 9z"/>
+    <ellipse cx="48" cy="99" rx="8" ry="4" fill="#d4a267"/><ellipse cx="81" cy="99" rx="8" ry="4" fill="#d4a267"/>
+    <path fill="url(#wood)" d="M24 45q-5-5-1-10l8-2 4-8 8 2 4 8 17 3 17-3 4-8 8 1 4 8q8 3 8 10l-8 7-10-3-11 7-9-4-7 8-9-8-12 3-9-7-10 2z"/>
+    <path fill="url(#lightWood)" d="M8 38l4-7h8l4 7-3 12-6 5-6-5zM104 38l4-7h8l4 7-3 12-6 5-6-5z"/>
+    <circle cx="16" cy="30" r="5" fill="#e3b777"/><circle cx="112" cy="30" r="5" fill="#e3b777"/>
+    <path fill="url(#wood)" d="M45 82l2-8 8-5 2-13q-10-5-10-15 0-13 17-13t17 13q0 10-10 15l2 13 8 5 2 8-7 8H52z"/>
+    <ellipse cx="64" cy="70" rx="17" ry="5" fill="#d8a667"/>
+    <path fill="#492a1d" d="M54 48q10 5 20 0l-2 5q-8 6-16 0z" stroke-width="1.6"/>
+    <path fill="url(#lightWood)" d="M48 34l3-13 8 8 5-17 5 17 9-8 3 13q-15 7-33 0z"/>
+    <path fill="url(#wood)" d="M61 9V3h6v6h6v5h-6v8h-6v-8h-6V9z"/>
+    <path fill="none" stroke="#f2d09a" stroke-width="2" stroke-linecap="round" d="M55 35l3 30m8-52v7m-42 19 7 8m67-8-7 8" opacity=".7"/>
+    <path fill="url(#wood)" d="M35 87h58l-3 8q-3 4-12 5l-5 5H53l-5-5q-10-1-13-5z"/>
+    <path fill="#d09a5d" d="M28 114h72l-3 7H31z"/>
+  </g>
+</svg>

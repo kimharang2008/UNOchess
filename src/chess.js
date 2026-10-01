@@ -25,10 +25,10 @@ export function createState(deck) {
     board, ids, nextId, moved: new Set(), graveyard: [], turnPlayer: 0,
     playerSides: [WHITE, BLACK], castling: new Set(['K', 'Q', 'k', 'q']),
     enPassant: null, firstTurn: true, firstTurns: new Set([WHITE, BLACK]), turnNumber: 1, deck, lastMove: null,
-    winner: null, card: null, actionsLeft: 0, busy: false, pendingAugmentChoice: false, pendingGiantSummon: null, kingEscapeRequired: null,
+    winner: null, card: null, actionsLeft: 0, busy: false, pendingAugmentChoice: false, pendingGiantSummon: null, pendingPromotionSummon: null, pendingCampPromotions: [], pendingMassPromotion: null, pendingAfterimageSelection: null, pendingSwordSelection: null, pendingSwordStrike: null, kingEscapeRequired: null,
     augments: {
-      giantHits: {}, giantPrevious: {}, kingPrevious: {}, zombie: {}, promotionAddict: {}, revenge: {}, kingDna: {}, shield: {},
-      alz: {}, traps: {}, beginner: {}, sword: {}, ghosts: [], afterimage: {}, rewind: {}, skipTurns: {},
+      giantHits: {}, giantAttacked: {}, giantPrevious: {}, kingPrevious: {}, zombie: {}, promotionAddict: {}, revenge: {}, kingDna: {}, shield: {},
+      alz: {}, traps: {}, beginner: {}, sword: {}, ghosts: [], afterimage: {}, rewind: {}, rewindUsed: {}, skipTurns: {},
     },
   };
 }
@@ -198,12 +198,29 @@ export function applyMove(state, move, { recordCapture = true, markMoved = false
   const [r, c] = move.from, [nr, nc] = move.to;
   const piece = state.board[r][c], movingId = state.ids[r][c];
   let captured = state.board[nr][nc], capturedId = state.ids[nr][nc];
+  if (piece.toLowerCase() === 'a' && captured.toLowerCase() === 'k') {
+    state.lastMove = { from: move.from.slice(), to: move.to.slice() };
+    return { captured: '.', giantHit: false, kingProtected: true };
+  }
   if (captured.toLowerCase() === 'a') {
+    if (state.augments?.giantAttacked) state.augments.giantAttacked[capturedId] = colorOf(piece);
+    if (piece.toLowerCase() === 'k') {
+      const hp = Math.max(0, (state.augments?.giantHits?.[capturedId] ?? 3) - 1);
+      if (state.augments?.giantHits) state.augments.giantHits[capturedId] = hp;
+      if (hp === 0) {
+        if (recordCapture) state.graveyard.push('a');
+        state.board[nr][nc] = '.'; state.ids[nr][nc] = null;
+        delete state.augments.giantHits[capturedId];
+        delete state.augments.giantAttacked[capturedId];
+      }
+      state.lastMove = { from: move.from.slice(), to: move.to.slice() };
+      return { captured: '.', giantHit: true, giantDestroyed: hp === 0, kingProtected: true };
+    }
     if (recordCapture) state.graveyard.push(piece.toLowerCase());
     const hp = Math.max(0, (state.augments?.giantHits?.[capturedId] ?? 3) - 1);
     if (state.augments?.giantHits) state.augments.giantHits[capturedId] = hp;
     state.board[r][c]='.'; state.ids[r][c]=null; state.moved.delete(movingId);
-    if (hp === 0) { if(recordCapture)state.graveyard.push('a'); state.board[nr][nc]='.';state.ids[nr][nc]=null;delete state.augments.giantHits[capturedId]; }
+    if (hp === 0) { if(recordCapture)state.graveyard.push('a'); state.board[nr][nc]='.';state.ids[nr][nc]=null;delete state.augments.giantHits[capturedId];delete state.augments.giantAttacked[capturedId]; }
     state.lastMove={from:move.from.slice(),to:move.to.slice()};
     return { captured: piece, giantHit: true, giantDestroyed: hp===0 };
   }
