@@ -390,6 +390,22 @@ async function onSquareClick(pos) {
   render();
 }
 
+function prepareRecruitedPiece(game, pos, side) {
+  const [r, c] = pos, piece = game.board[r][c], kind = piece.toLowerCase(), id = game.ids[r][c];
+  game.board[r][c] = side === WHITE ? piece.toUpperCase() : piece.toLowerCase();
+  if (id !== null && id !== undefined) game.moved.delete(id);
+  if (kind === 'p') {
+    game.enPassant = null;
+    if ((side === WHITE && r === 0) || (side === BLACK && r === 7)) game.board[r][c] = side === WHITE ? 'Q' : 'q';
+  }
+}
+
+function canUseRecruitedPiece(pos, side) {
+  const game = cloneState(state), [r, c] = pos, id = game.ids[r][c];
+  prepareRecruitedPiece(game, pos, side);
+  return legalMoves(game, side).some(move => move.from[0] === r && move.from[1] === c && game.ids[move.from[0]][move.from[1]] === id);
+}
+
 function handleMoveAugments(movingSide, movingPiece, movingId, from, to, captured) {
   const a=state.augments, [tr,tc]=to, [fr,fc]=from;
   const kind=captured&&captured!=='.'?captured.toLowerCase():null;
@@ -405,8 +421,8 @@ function handleMoveAugments(movingSide, movingPiece, movingId, from, to, capture
       }
     }
     if(a.zombie[movingSide]>0){
-      const nearby=[];for(let r=Math.max(0,tr-1);r<=Math.min(7,tr+1);r++)for(let c=Math.max(0,tc-1);c<=Math.min(7,tc+1);c++)if(state.board[r][c]!=='.'&&colorOf(state.board[r][c])===targetSide&&state.board[r][c].toLowerCase()!=='k')nearby.push([r,c]);
-      if(nearby.length){const [r,c]=nearby[Math.floor(Math.random()*nearby.length)];state.board[r][c]=movingSide===WHITE?state.board[r][c].toUpperCase():state.board[r][c].toLowerCase();a.zombie[movingSide]--;state.notice='좀비사태!!!! 상대 기물이 아군이 되었습니다.';}
+      const nearby=[];for(let r=Math.max(0,tr-1);r<=Math.min(7,tr+1);r++)for(let c=Math.max(0,tc-1);c<=Math.min(7,tc+1);c++)if(state.board[r][c]!=='.'&&colorOf(state.board[r][c])===targetSide&&state.board[r][c].toLowerCase()!=='k'&&canUseRecruitedPiece([r,c],movingSide))nearby.push([r,c]);
+      if(nearby.length){const [r,c]=nearby[Math.floor(Math.random()*nearby.length)];prepareRecruitedPiece(state,[r,c],movingSide);a.zombie[movingSide]--;state.notice='좀비사태!!!! 상대 기물이 아군이 되었습니다. 이제 해당 기물을 사용할 수 있습니다.';}
     }
   }
   const trap=a.traps[movingId];

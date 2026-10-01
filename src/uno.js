@@ -1,16 +1,16 @@
 import { reverseSides, randomizePositions } from './chess.js';
 
-// Number percentages are within the 70% numeric-card group.
+// Number percentages are within the 60% numeric-card group.
 export const NUMBER_PERCENTAGES = [5, 16, 16, 16, 12, 12, 6, 6, 6, 5];
-// Special-card percentages sum to 100% within the 30% special-card group.
+// Special-card percentages sum to 100% within the 40% special-card group.
 export const SPECIAL_WEIGHTS = [
   ['금지', 16], ['+2', 16], ['와일드', 16], ['리버스', 15],
   ['와일드 리버스', 15], ['특수증강 와일드', 11], ['+4 와일드', 11],
 ];
 
 const GROUP_SCALE = 40; // 4,000 cards keeps both probability groups exact.
-export const NUMBER_COUNTS = NUMBER_PERCENTAGES.map(percent => Math.round(percent * 0.7 * GROUP_SCALE));
-export const SPECIAL_COUNTS = SPECIAL_WEIGHTS.map(([, percent]) => Math.round(percent * 0.3 * GROUP_SCALE));
+export const NUMBER_COUNTS = NUMBER_PERCENTAGES.map(percent => Math.round(percent * 0.6 * GROUP_SCALE));
+export const SPECIAL_COUNTS = SPECIAL_WEIGHTS.map(([, percent]) => Math.round(percent * 0.4 * GROUP_SCALE));
 
 export function createDeck() {
   const cards = [];
