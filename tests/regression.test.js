@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyMove, legalMoves, reverseSides, transform } from '../src/chess.js';
+import { applyMove, legalMoves, pseudoMoves, reverseSides, transform } from '../src/chess.js';
 import { at, coords, emptyState, idAt, moveNamed, put } from './helpers.js';
 
 test('캐슬링은 킹과 룩을 함께 옮기고 두 기물 모두 이동 기록을 남긴다', () => {
@@ -63,4 +63,26 @@ test('와일드 변환은 킹은 제외하고 기물 종류를 바꾼다', () =>
   assert.equal(transform(state, coords('c3'), 'q'), true);
   assert.equal(at(state, 'c3'), 'Q');
   assert.equal(transform(state, coords('e1'), 'q'), false);
+});
+
+test('거신병은 퀸과 나이트처럼 움직이고 공격받으면 공격자를 쓰러뜨린다', () => {
+  const state=emptyState();put(state,'h1','K');put(state,'h8','k');put(state,'a4','R');
+  const giantId=put(state,'d4','a');state.augments.giantHits[giantId]=3;
+  assert.ok(pseudoMoves(state,'b').some(move=>move.from.join(',')===coords('d4').join(',')&&move.to.join(',')===coords('e6').join(',')));
+  applyMove(state,{from:coords('a4'),to:coords('d4')});
+  assert.equal(at(state,'a4'),'.');assert.equal(at(state,'d4'),'a');
+  assert.equal(state.augments.giantHits[giantId],2);assert.equal(state.graveyard.at(-1),'r');
+});
+
+test('체스 처음 해봄 효과는 폰의 후진 수를 허용한다', () => {
+  const state=emptyState();put(state,'a1','K');put(state,'h8','k');put(state,'d4','P');state.augments.beginner.w=2;
+  assert.ok(pseudoMoves(state,'w').some(move=>move.from.join(',')===coords('d4').join(',')&&move.to.join(',')===coords('d3').join(',')));
+});
+
+test('왕의 DNA와 알츠하이머는 지정된 기물 포획을 막는다', () => {
+  for(const effect of ['kingDna','alz']){
+    const state=emptyState();put(state,'a1','K');put(state,'e7','k');put(state,'d4','Q');put(state,'d6','p');
+    state.augments[effect].b=effect==='alz'?3:true;
+    assert.equal(moveNamed(legalMoves(state,'w'),'d4','d6'),undefined);
+  }
 });

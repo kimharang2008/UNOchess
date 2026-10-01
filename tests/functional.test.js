@@ -12,13 +12,13 @@ test('초기 보드와 백의 기본 합법 수를 만든다', () => {
   assert.equal(legalMoves(state, 'w').length, 20);
 });
 
-test('카드 덱은 숫자 75%, 특수 25% 비율과 지정된 숫자 확률을 반영한다', () => {
+test('카드 덱은 숫자 70%, 특수 30% 비율과 지정된 숫자 확률을 반영한다', () => {
   const deck = createDeck();
   assert.equal(deck.length, 4000);
   for (let n=0;n<=9;n++) assert.equal(deck.filter(card => card === String(n)).length, NUMBER_COUNTS[n]);
   for (let i=0;i<SPECIAL_COUNTS.length;i++) assert.equal(deck.filter(card => card === ['금지','+2','와일드','리버스','와일드 리버스','특수증강 와일드','+4 와일드'][i]).length, SPECIAL_COUNTS[i]);
-  assert.equal(deck.filter(card => !/^\d$/.test(card)).length, 1000);
-  assert.equal(NUMBER_COUNTS.reduce((sum, n) => sum+n, 0), 3000);
+  assert.equal(deck.filter(card => !/^\d$/.test(card)).length, 1200);
+  assert.equal(NUMBER_COUNTS.reduce((sum, n) => sum+n, 0), 2800);
 });
 
 test('첫 이동 전인 퀸은 킹을 직접 잡을 수 있고 승격 이름을 보여준다', () => {
@@ -26,8 +26,10 @@ test('첫 이동 전인 퀸은 킹을 직접 잡을 수 있고 승격 이름을 
   put(state, 'a1', 'K'); put(state, 'd2', 'Q'); put(state, 'd4', 'k');
   const move = moveNamed(legalMoves(state, 'w'), 'd2', 'd4');
   assert.ok(move);
-  applyMove(state, move, { markMoved: true });
+  const { captured } = applyMove(state, move, { markMoved: true });
   assert.equal(at(state, 'd4'), 'Q');
+  assert.equal(captured.toLowerCase(), 'k');
+  assert.equal(state.winner, 0);
   assert.equal(state.graveyard.at(-1), 'k');
   assert.equal(at(state, 'd4'), 'Q');
   assert.equal(nameOf('q'), '퀸');
@@ -64,4 +66,10 @@ test('+2와 +4는 선택 부활 과정을 각각 두 번과 네 번 요청한다
   const wild = await resolveCard(state, '와일드', ui);
   assert.equal(wild.pendingTransform, true);
   assert.equal(wild.actions, 1);
+});
+
+test('특수증강 와일드는 증강 선택과 1회 행동을 제공한다', async () => {
+  const result = await resolveCard(emptyState(), '특수증강 와일드', {});
+  assert.equal(result.pendingAugment, true);
+  assert.equal(result.actions, 1);
 });

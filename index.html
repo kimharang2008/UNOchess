@@ -7,7 +7,29 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="app">
+  <section id="startScreen" class="start-screen">
+    <div class="start-card">
+      <p class="eyebrow">UNO × CHESS</p>
+      <h1>우노체스</h1>
+      <p class="start-description">플레이 방식을 선택하세요.</p>
+      <div class="start-mode-buttons">
+        <button id="offlineMode" class="primary-button" type="button">오프라인 플레이</button>
+        <button id="onlineMode" class="secondary-button" type="button">온라인 플레이</button>
+      </div>
+      <form id="onlineSetup" class="online-setup" hidden>
+        <label>닉네임<input id="nicknameInput" maxlength="16" autocomplete="nickname" placeholder="닉네임" required></label>
+        <div class="room-actions">
+          <button id="hostRoom" class="primary-button" type="button">방 호스트</button>
+          <div class="join-room">
+            <input id="roomCodeInput" maxlength="6" autocomplete="off" placeholder="6자리 방 코드" aria-label="방 코드">
+            <button id="joinRoom" class="secondary-button" type="button">방 참가</button>
+          </div>
+        </div>
+        <p id="setupMessage" class="setup-message" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+  <main class="app" hidden>
     <header class="topbar">
       <div>
         <p class="eyebrow">UNO × CHESS</p>
@@ -15,14 +37,15 @@
       </div>
       <div id="turnBadge" class="turn-badge">플레이어1(백)의 차례</div>
     </header>
+    <div id="onlineRoomBadge" class="online-room-badge" hidden></div>
 
     <section class="game-layout">
       <div class="board-wrap">
         <div id="board" class="board" role="grid" aria-label="체스판"></div>
       </div>
-      <aside class="side-panel">
+      <aside id="sidePanel" class="side-panel">
         <section class="card-panel">
-          <div class="section-heading"><h2>이번 턴 카드</h2><span id="deckCount">덱 4000장</span></div>
+          <div class="section-heading"><h2>이번 턴 카드</h2></div>
           <div id="cardDisplay" class="draw-card empty-card">카드를 뽑아 시작하세요</div>
           <button id="drawButton" class="primary-button">카드 뽑기</button>
         </section>
@@ -30,6 +53,11 @@
           <h2>게임 상태</h2>
           <p id="statusText">플레이어1(백)의 차례입니다.</p>
           <div id="actionText" class="action-text"></div>
+          <details id="opponentAugments" class="opponent-augments" hidden>
+            <summary id="opponentAugmentTitle">상대 활성 증강 확인</summary>
+            <ul id="opponentAugmentList"></ul>
+          </details>
+          <button id="rewindButton" class="secondary-button" type="button" hidden>시간을 되돌리기</button>
         </section>
         <section class="graveyard-panel">
           <div class="section-heading"><h2>공동묘지</h2><span id="graveCount">0개</span></div>
@@ -37,17 +65,53 @@
         </section>
         <details class="rules-panel">
           <summary>카드 확률</summary>
-          <p>숫자 카드 75%, 특수 카드 25%</p>
-          <div class="probabilities">숫자 카드 안에서: 1–3 각각 15%, 4–6 각각 10%, 7–8 각각 7.5%, 0과 9 각각 5%.<br>특수 카드 안에서: 스킵·+2·와일드 각각 16%, 리버스·와일드 리버스 각각 15%, 특수증강 와일드·+4 와일드 각각 11%.</div>
+          <p>숫자 카드 70%, 특수 카드 30%</p>
+          <div class="probabilities">숫자 카드 안에서: 1–3 각각 16%, 4–5 각각 12%, 6–8 각각 6%, 0과 9 각각 5%.<br>특수 카드 안에서: 스킵·+2·와일드 각각 16%, 리버스·와일드 리버스 각각 15%, 특수증강 와일드·+4 와일드 각각 11%.</div>
         </details>
         <button id="newGameButton" class="secondary-button">새 게임</button>
+        <section id="reviewPanel" class="review-panel" hidden>
+          <div class="review-panel-heading">
+            <div><p class="eyebrow">MOVE REVIEW</p><h2>수 돌아보기</h2></div>
+            <button id="closeReview" class="review-close" type="button">결과</button>
+          </div>
+          <div class="review-current">
+            <span id="reviewPosition" class="review-position">시작 위치</span>
+            <strong id="reviewNotation" class="review-big-notation">시작</strong>
+            <span id="reviewMoveInfo" class="review-move-info">초기 배치</span>
+          </div>
+          <div class="review-controls">
+            <button id="previousReview" class="secondary-button" type="button">← 이전 수</button>
+            <button id="nextReview" class="primary-button" type="button">다음 수 →</button>
+          </div>
+          <div id="reviewMoves" class="review-moves" aria-label="기보 목록"></div>
+        </section>
       </aside>
     </section>
     <footer>체크와 체크메이트는 게임을 끝내지 않습니다. 상대 킹을 직접 잡으면 승리합니다.</footer>
   </main>
+  <section id="exitScreen" class="exit-screen" hidden>
+    <h1>게임 종료</h1>
+    <p>우노체스가 종료되었습니다. 이 브라우저 탭을 닫아도 됩니다.</p>
+  </section>
+  <div id="augmentAnnouncement" class="augment-announcement" aria-live="assertive" hidden></div>
+  <dialog id="endDialog" class="choice-dialog end-dialog">
+    <section class="end-content">
+      <p class="eyebrow">GAME OVER</p>
+      <h2 id="endTitle">플레이어 승리</h2>
+      <p id="endMessage">상대 킹을 잡았습니다.</p>
+      <div class="end-actions">
+        <button id="newGameFromEnd" class="primary-button">새 게임</button>
+        <button id="reviewGame" class="secondary-button">수 돌아보기</button>
+        <button id="exitGame" class="exit-button">게임 종료</button>
+      </div>
+    </section>
+  </dialog>
   <dialog id="choiceDialog" class="choice-dialog">
     <form method="dialog" id="choiceForm">
-      <h2 id="dialogTitle">선택</h2>
+      <div class="choice-heading">
+        <h2 id="dialogTitle">선택</h2>
+        <button id="closeChoice" class="choice-close" type="button" aria-label="창 닫기">×</button>
+      </div>
       <p id="dialogHelp"></p>
       <div id="dialogChoices" class="dialog-choices"></div>
       <button id="cancelChoice" class="secondary-button" value="cancel">취소</button>

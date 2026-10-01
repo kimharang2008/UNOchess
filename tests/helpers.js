@@ -13,6 +13,7 @@ export function emptyState({ turnPlayer = 0, sides = ['w', 'b'], firstTurn = fal
   state.turnPlayer = turnPlayer;
   state.playerSides = sides.slice();
   state.firstTurn = firstTurn;
+  state.firstTurns = new Set(firstTurn ? ['w', 'b'] : []);
   return state;
 }
 
