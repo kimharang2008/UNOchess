@@ -1,6 +1,6 @@
 import { BLACK, WHITE, reverseSides, randomizePositions } from './chess.js';
 
-// Card mix is 10% numeric and 90% special; these are weights within each group.
+// Card mix is 65% numeric and 35% special; these are weights within each group.
 export const NUMBER_PERCENTAGES = [5, 16, 16, 16, 12, 12, 6, 6, 6, 5];
 export const SPECIAL_WEIGHTS = [
   ['금지', 16], ['+2', 16], ['와일드', 16], ['리버스', 15],
@@ -8,8 +8,8 @@ export const SPECIAL_WEIGHTS = [
 ];
 
 const GROUP_SCALE = 40; // 4,000 cards keeps both probability groups exact.
-export const NUMBER_COUNTS = NUMBER_PERCENTAGES.map(percent => Math.round(percent * 0.1 * GROUP_SCALE));
-export const SPECIAL_COUNTS = SPECIAL_WEIGHTS.map(([, percent]) => Math.round(percent * 0.9 * GROUP_SCALE));
+export const NUMBER_COUNTS = NUMBER_PERCENTAGES.map(percent => Math.round(percent * 0.65 * GROUP_SCALE));
+export const SPECIAL_COUNTS = SPECIAL_WEIGHTS.map(([, percent]) => Math.round(percent * 0.35 * GROUP_SCALE));
 
 export function createDeck() {
   const cards = [];
