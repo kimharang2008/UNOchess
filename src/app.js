@@ -17,7 +17,7 @@ const reviewPosition = $('#reviewPosition'), previousReview = $('#previousReview
 const appElement = $('.app'), exitScreen = $('#exitScreen'), sidePanel = $('#sidePanel');
 let state = createState(createDeck()), selection = null, selectedMoves = [];
 let moveHistory = [], reviewIndex = null, reviewing = false, initialSnapshot = cloneState(state), pendingPromotionCard = null, turnStartSnapshot = null, turnStartHistoryIndex = 0;
-let gameStarted=false, gameMode='offline', localPlayerId=null, localPlayerIndex=null, roomCode=null, roomPlayers=[], remoteSeq=0, pollTimer=null, syncTimer=null, lastLocalActor=null, onlineResetPending=false;
+let gameStarted=false, gameMode='offline', localPlayerId=null, localPlayerIndex=null, roomCode=null, roomPlayers=[], remoteSeq=0, pollTimer=null, syncTimer=null, lastLocalActor=null, onlineResetPending=false, hostLobby=null;
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 function deserialize(value) {
@@ -46,16 +46,40 @@ function syncRoomBadge() {
 }
 
 function startLocalGame(mode) {
-  clearInterval(pollTimer);gameStarted=true;gameMode=mode;localPlayerId=null;localPlayerIndex=null;roomCode=null;roomPlayers=[];remoteSeq=0;
+  clearInterval(pollTimer);hostLobby=null;gameStarted=true;gameMode=mode;localPlayerId=null;localPlayerIndex=null;roomCode=null;roomPlayers=[];remoteSeq=0;
   state=createState(createDeck());selection=null;selectedMoves=[];moveHistory=[];reviewIndex=null;reviewing=false;pendingPromotionCard=null;
   initialSnapshot=cloneState(state);$('#startScreen').hidden=true;appElement.hidden=false;window.scrollTo(0,0);syncRoomBadge();render();
 }
 
 function startOnlineGame(room) {
-  clearInterval(pollTimer);gameStarted=true;gameMode='online';localPlayerId=room.playerId;localPlayerIndex=room.playerIndex;roomCode=room.code;roomPlayers=room.players;remoteSeq=room.seq;
+  clearInterval(pollTimer);hostLobby=null;gameStarted=true;gameMode='online';localPlayerId=room.playerId;localPlayerIndex=room.playerIndex;roomCode=room.code;roomPlayers=room.players;remoteSeq=room.seq;
   state=rehydrate(room.state);moveHistory=rehydrate(room.history||[]);initialSnapshot=room.initialSnapshot?rehydrate(room.initialSnapshot):cloneState(state);selection=null;selectedMoves=[];reviewing=false;pendingPromotionCard=null;
   $('#startScreen').hidden=true;appElement.hidden=false;syncRoomBadge();render();
   pollTimer=setInterval(pollRoom,700);
+}
+
+function waitInHostLobby(room) {
+  clearInterval(pollTimer);
+  hostLobby=room;gameMode='online';localPlayerId=room.playerId;localPlayerIndex=room.playerIndex;roomCode=room.code;roomPlayers=room.players;remoteSeq=room.seq;
+  $('#startModeButtons').hidden=true;$('#onlineSetup').hidden=true;$('#onlineLobby').hidden=false;
+  $('#lobbyRoomCode').textContent=room.code;
+  $('#lobbyWaitMessage').textContent='다른 플레이어가 방 코드로 참가하기를 기다리는 중입니다.';
+  pollTimer=setInterval(pollHostLobby,700);
+}
+
+async function pollHostLobby() {
+  if(!hostLobby)return;
+  try{
+    const waitingRoom=hostLobby;
+    const response=await fetch(`/api/rooms/${waitingRoom.code}?playerId=${encodeURIComponent(waitingRoom.playerId)}`);
+    const data=await response.json();if(!response.ok)return;
+    if(hostLobby!==waitingRoom)return;
+    roomPlayers=data.players||[];
+    if(roomPlayers.length>=2){
+      hostLobby=null;clearInterval(pollTimer);
+      startOnlineGame({...data,code:waitingRoom.code,playerId:waitingRoom.playerId,playerIndex:waitingRoom.playerIndex});
+    }
+  }catch(error){console.error('Room lobby polling failed',error);}
 }
 
 async function pollRoom() {
@@ -63,7 +87,9 @@ async function pollRoom() {
   try{
     const response=await fetch(`/api/rooms/${roomCode}?playerId=${encodeURIComponent(localPlayerId)}`);const data=await response.json();if(!response.ok)return;
     roomPlayers=data.players;syncRoomBadge();
-    if(data.seq>remoteSeq&&lastLocalActor!==localPlayerIndex&&!state.busy){
+    // Remote busy states are expected while the other player draws or resolves a card.
+    // Do not let that replicated flag block the final turn update from arriving.
+    if(data.seq>remoteSeq&&lastLocalActor!==localPlayerIndex){
       state=rehydrate(data.state);moveHistory=rehydrate(data.history||[]);initialSnapshot=data.initialSnapshot?rehydrate(data.initialSnapshot):initialSnapshot;remoteSeq=data.seq;selection=null;selectedMoves=[];render();
     }
   }catch(error){console.error('Online polling failed',error);}
@@ -638,7 +664,7 @@ $('#roomCodeInput').addEventListener('input',event=>{event.target.value=event.ta
 $('#hostRoom').addEventListener('click',async()=>{
   const nickname=$('#nicknameInput').value.trim(),message=$('#setupMessage');if(!nickname){message.textContent='닉네임을 입력하세요.';return;}
   message.textContent='방을 만들고 있습니다…';
-  try{const response=await fetch('/api/rooms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname})});const data=await response.json();if(!response.ok)throw new Error(data.error);startOnlineGame(data);}
+  try{const response=await fetch('/api/rooms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname})});const data=await response.json();if(!response.ok)throw new Error(data.error);waitInHostLobby(data);}
   catch(error){message.textContent=error.message||'방을 만들지 못했습니다. 서버 연결을 확인하세요.';}
 });
 $('#joinRoom').addEventListener('click',async()=>{

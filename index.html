@@ -12,7 +12,7 @@
       <p class="eyebrow">UNO × CHESS</p>
       <h1>우노체스</h1>
       <p class="start-description">플레이 방식을 선택하세요.</p>
-      <div class="start-mode-buttons">
+      <div id="startModeButtons" class="start-mode-buttons">
         <button id="offlineMode" class="primary-button" type="button">오프라인 플레이</button>
         <button id="onlineMode" class="secondary-button" type="button">온라인 플레이</button>
       </div>
@@ -27,6 +27,11 @@
         </div>
         <p id="setupMessage" class="setup-message" aria-live="polite"></p>
       </form>
+      <section id="onlineLobby" class="online-lobby" hidden>
+        <p class="eyebrow">ROOM CODE</p>
+        <strong id="lobbyRoomCode" class="lobby-room-code"></strong>
+        <p id="lobbyWaitMessage" class="setup-message" aria-live="polite">상대 플레이어가 참가하기를 기다리는 중입니다.</p>
+      </section>
     </div>
   </section>
   <main class="app" hidden>
