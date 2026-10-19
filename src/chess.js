@@ -125,6 +125,16 @@ function destinationOkay(state, side, r, c) {
   return inside(r, c) && (state.board[r][c] === '.' || colorOf(state.board[r][c]) !== side);
 }
 
+function isValidEnPassant(state, side, fromRow, targetRow, targetCol) {
+  const step = side === WHITE ? -1 : 1;
+  const victim = state.board[fromRow]?.[targetCol];
+  const lastMove = state.lastMove;
+  return state.enPassant?.[0] === targetRow && state.enPassant?.[1] === targetCol &&
+    victim?.toLowerCase() === 'p' && colorOf(victim) === opposite(side) &&
+    lastMove?.to?.[0] === fromRow && lastMove?.to?.[1] === targetCol &&
+    lastMove?.from?.[0] === fromRow + 2 * step && lastMove?.from?.[1] === targetCol;
+}
+
 export function pseudoMoves(state, side) {
   const moves = [];
   const add = (from, to, special = null) => moves.push({ from, to, special });
@@ -142,11 +152,7 @@ export function pseudoMoves(state, side) {
         const nr = r + step, nc = c + dc;
         if (!inside(nr, nc)) continue;
         if (state.board[nr][nc] !== '.' && colorOf(state.board[nr][nc]) !== side) add([r, c], [nr, nc]);
-        else if (
-          state.enPassant?.[0] === nr && state.enPassant?.[1] === nc &&
-          state.lastMove?.to?.[0] === r && state.lastMove?.to?.[1] === nc &&
-          state.board[r][nc]?.toLowerCase() === 'p' && colorOf(state.board[r][nc]) === opposite(side)
-        ) add([r, c], [nr, nc], 'ep');
+        else if (isValidEnPassant(state, side, r, nr, nc)) add([r, c], [nr, nc], 'ep');
       }
       if (state.augments?.beginner?.[side] > 0) {
         const back = r - step;
@@ -285,7 +291,10 @@ function canEnterEnemyKingRange(state, side, move) {
 export function legalMoves(state, side, { strict = false } = {}) {
   const firstTurn = isFirstTurnForSide(state, side);
   let candidates = pseudoMoves(state, side).filter(move => {
+    const piece = state.board[move.from[0]][move.from[1]];
     const target = state.board[move.to[0]][move.to[1]];
+    // A pawn may enter an empty diagonal square only through a valid en passant capture.
+    if (piece.toLowerCase() === 'p' && target === '.' && Math.abs(move.to[1] - move.from[1]) === 1 && move.special !== 'ep') return false;
     const id = state.ids[move.from[0]][move.from[1]];
     const backRank = side === WHITE ? 0 : 7;
     const targetSide = colorOf(target), king = targetSide && kingSquare(state,targetSide);
