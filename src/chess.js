@@ -142,7 +142,11 @@ export function pseudoMoves(state, side) {
         const nr = r + step, nc = c + dc;
         if (!inside(nr, nc)) continue;
         if (state.board[nr][nc] !== '.' && colorOf(state.board[nr][nc]) !== side) add([r, c], [nr, nc]);
-        else if (state.enPassant && state.enPassant[0] === nr && state.enPassant[1] === nc) add([r, c], [nr, nc], 'ep');
+        else if (
+          state.enPassant?.[0] === nr && state.enPassant?.[1] === nc &&
+          state.lastMove?.to?.[0] === r && state.lastMove?.to?.[1] === nc &&
+          state.board[r][nc]?.toLowerCase() === 'p' && colorOf(state.board[r][nc]) === opposite(side)
+        ) add([r, c], [nr, nc], 'ep');
       }
       if (state.augments?.beginner?.[side] > 0) {
         const back = r - step;
@@ -198,10 +202,6 @@ export function applyMove(state, move, { recordCapture = true, markMoved = false
   const [r, c] = move.from, [nr, nc] = move.to;
   const piece = state.board[r][c], movingId = state.ids[r][c];
   let captured = state.board[nr][nc], capturedId = state.ids[nr][nc];
-  if (piece.toLowerCase() === 'a' && captured.toLowerCase() === 'k') {
-    state.lastMove = { from: move.from.slice(), to: move.to.slice() };
-    return { captured: '.', giantHit: false, kingProtected: true };
-  }
   if (captured.toLowerCase() === 'a') {
     if (state.augments?.giantAttacked) state.augments.giantAttacked[capturedId] = colorOf(piece);
     if (piece.toLowerCase() === 'k') {

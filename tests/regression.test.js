@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyMove, legalMoves, pseudoMoves, reverseSides, transform } from '../src/chess.js';
+import { applyMove, inCheck, legalMoves, pseudoMoves, revive, reverseSides, transform } from '../src/chess.js';
 import { at, coords, emptyState, idAt, moveNamed, put } from './helpers.js';
 
 test('캐슬링은 킹과 룩을 함께 옮기고 두 기물 모두 이동 기록을 남긴다', () => {
@@ -72,6 +72,30 @@ test('거신병은 퀸과 나이트처럼 움직이고 공격받으면 공격자
   applyMove(state,{from:coords('a4'),to:coords('d4')});
   assert.equal(at(state,'a4'),'.');assert.equal(at(state,'d4'),'a');
   assert.equal(state.augments.giantHits[giantId],2);assert.equal(state.graveyard.at(-1),'r');
+});
+
+test('부활한 거신병은 양쪽 진영에서 킹을 체크하고 직접 잡을 수 있다', () => {
+  const cases=[
+    {turnPlayer:0, ownKing:'a1', targetKing:'e8', summon:'e4', target:'e8', side:'w', piece:'A', winner:0, king:'k'},
+    {turnPlayer:1, ownKing:'a8', targetKing:'e1', summon:'e5', target:'e1', side:'b', piece:'a', winner:1, king:'K'},
+  ];
+  for(const scenario of cases){
+    const state=emptyState({turnPlayer:scenario.turnPlayer});
+    put(state,scenario.ownKing,scenario.piece==='A'?'K':'k');
+    put(state,scenario.targetKing,scenario.king);
+    state.graveyard=['a'];
+    assert.equal(revive(state,0,coords(scenario.summon)),true);
+    const giantId=idAt(state,scenario.summon);
+    assert.equal(at(state,scenario.summon),scenario.piece);
+    assert.equal(state.augments.giantHits[giantId],3);
+    assert.equal(inCheck(state,scenario.side==='w'?'b':'w'),true);
+    const capture=moveNamed(legalMoves(state,scenario.side),scenario.summon,scenario.target);
+    assert.ok(capture);
+    const result=applyMove(state,capture,{markMoved:true});
+    assert.equal(result.captured,scenario.king);
+    assert.equal(at(state,scenario.target),scenario.piece);
+    assert.equal(state.winner,scenario.winner);
+  }
 });
 
 test('체스 처음 해봄 효과는 폰의 후진 수를 허용한다', () => {
