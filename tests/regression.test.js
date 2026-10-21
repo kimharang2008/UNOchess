@@ -18,6 +18,7 @@ test('앙파상은 옆의 폰을 공동묘지로 보내고 도착 칸에 폰을 
   const state = emptyState();
   put(state, 'h1', 'K'); put(state, 'e5', 'P'); put(state, 'd5', 'p'); put(state, 'a8', 'k');
   state.enPassant = coords('d6');
+  state.lastMove = { from: coords('d7'), to: coords('d5') };
   const move = moveNamed(legalMoves(state, 'w'), 'e5', 'd6');
   assert.equal(move.special, 'ep');
   applyMove(state, move, { markMoved: true });

@@ -74,7 +74,7 @@ function scheduleOnlineSync() {
   syncTimer=setTimeout(async()=>{
     try{
       const response=await fetch(`/api/rooms/${roomCode}/state`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({playerId:localPlayerId,state,history:moveHistory,initialSnapshot},(_key,item)=>item instanceof Set?{__set:[...item]}:item)});
-      const data=await response.json();if(response.ok){remoteSeq=Math.max(remoteSeq,data.seq);lastLocalActor=null;}
+      const data=await response.json();if(response.ok){remoteSeq=Math.max(remoteSeq,data.seq);if(state.turnPlayer!==localPlayerIndex||state.winner!==null)lastLocalActor=null;}
     }catch(error){console.error('Online sync failed',error);}
   },80);
 }
