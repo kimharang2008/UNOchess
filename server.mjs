@@ -31,11 +31,11 @@ const server = http.createServer(async (request, response) => {
         let code;do{code=roomCode();}while(rooms.has(code));
         const playerId=randomUUID(),gameState=createState(createDeck());
         if(randomBytes(1)[0]%2){gameState.playerSides=['b','w'];gameState.turnPlayer=1;}
-        const room={code,players:[{id:playerId,nickname,index:0}],state:gameState,history:[],initialSnapshot:null,seq:1};
+        const room={code,players:[{id:playerId,nickname,index:0}],state:gameState,history:[],initialSnapshot:null,rematchVotes:[],seq:1};
         room.initialSnapshot=room.state;rooms.set(code,room);
         return sendJson(response,200,{code,playerId,playerIndex:0,side:room.state.playerSides[0],nickname,state:room.state,history:room.history,initialSnapshot:room.initialSnapshot,seq:room.seq,players:room.players});
       }
-      const route=/^\/api\/rooms\/([A-Z0-9]{6})(?:\/(state))?$/.exec(pathname);
+      const route=/^\/api\/rooms\/([A-Z0-9]{6})(?:\/(state|rematch))?$/.exec(pathname);
       if(route){
         const room=rooms.get(route[1]);if(!room)return sendJson(response,404,{error:'방 코드를 찾을 수 없습니다.'});
         if(request.method==='POST'&&!route[2]){
@@ -49,13 +49,26 @@ const server = http.createServer(async (request, response) => {
         if(request.method==='GET'){
           const playerId=new URL(request.url,'http://localhost').searchParams.get('playerId');
           if(!room.players.some(player=>player.id===playerId))return sendJson(response,403,{error:'이 방의 참가자가 아닙니다.'});
-          return sendJson(response,200,{state:room.state,history:room.history,initialSnapshot:room.initialSnapshot,seq:room.seq,players:room.players});
+          return sendJson(response,200,{state:room.state,history:room.history,initialSnapshot:room.initialSnapshot,rematchVotes:room.rematchVotes,seq:room.seq,players:room.players});
+        }
+        if(request.method==='POST'&&route[2]==='rematch'){
+          const body=await readJson(request),player=room.players.find(item=>item.id===body.playerId);
+          if(!player)return sendJson(response,403,{error:'이 방의 참가자가 아닙니다.'});
+          if(room.state.winner===null)return sendJson(response,409,{error:'현재 게임이 끝나지 않았습니다.'});
+          if(!room.rematchVotes.includes(player.index))room.rematchVotes.push(player.index);
+          let restarted=false;
+          if(room.rematchVotes.length===2){
+            const nextState=createState(createDeck());
+            if(randomBytes(1)[0]%2){nextState.playerSides=['b','w'];nextState.turnPlayer=1;}
+            room.state=nextState;room.history=[];room.initialSnapshot=room.state;room.rematchVotes=[];restarted=true;
+          }
+          room.seq++;
+          return sendJson(response,200,{state:room.state,history:room.history,initialSnapshot:room.initialSnapshot,rematchVotes:room.rematchVotes,restarted,seq:room.seq,players:room.players});
         }
         if(request.method==='POST'&&route[2]){
           const body=await readJson(request),player=room.players.find(item=>item.id===body.playerId);
           if(!player)return sendJson(response,403,{error:'이 방의 참가자가 아닙니다.'});
-          if(!body.resetRoom&&room.state.turnPlayer!==player.index)return sendJson(response,409,{error:'상대의 차례입니다.'});
-          if(body.resetRoom&&player.index!==0)return sendJson(response,403,{error:'방 호스트만 새 게임을 시작할 수 있습니다.'});
+          if(room.state.turnPlayer!==player.index)return sendJson(response,409,{error:'상대의 차례입니다.'});
           room.state=body.state;room.history=body.history||room.history;room.initialSnapshot=body.initialSnapshot||room.initialSnapshot;room.seq++;
           return sendJson(response,200,{seq:room.seq});
         }
