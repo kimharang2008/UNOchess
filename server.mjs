@@ -7,7 +7,14 @@ import { createState } from './src/chess.js';
 import { createDeck } from './src/uno.js';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
-const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml' };
+const types = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.txt': 'text/plain; charset=utf-8'
+};
 const rooms = new Map();
 const roomCode = () => {
   const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
